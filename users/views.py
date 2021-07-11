@@ -9,21 +9,35 @@ from .models import Profile
 #Exceptions
 from django.db.utils import IntegrityError
 
+from .forms import Userform
 
 def login_view(request):
+    profile = request.user
     if request.method == "POST":
-        username = request.POST['username']
-        password = request.POST['password']
-        user = authenticate(request,username=username,password=password)
+        #username = request.POST['username']
+        #password = request.POST['password']
 
-        if user:
-            login(request,user)
-            return redirect('feed')
-        else:
-            return render(request,'users/login.html', {'error':'Invalid username or password'})
+        form = Userform(request.POST)
+        if form.is_valid():
+            print(form.cleaned_data)
+            data = form.cleaned_data
+
+            username = data['username']
+            password = data['password']
+
+            user = authenticate(request,username=username,password=password)
+            
+            if user:
+                login(request,user)
+                return redirect('feed')
+            else:
+                return render(request,'users/login.html', {'error':'Invalid username or password'})
+    else:
+        form = Userform()
 
     if not request.user.is_authenticated:
-        return render(request,'users/login.html')
+        return render(request,'users/login.html',context={'form':form})
+        #form = Userform()
     else:
         return redirect('feed')
 
